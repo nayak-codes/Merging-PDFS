@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { fileAPI, mergeAPI } from '../services/api';
 import {
     Upload,
@@ -10,7 +10,8 @@ import {
     GripVertical,
     CheckCircle,
     AlertCircle,
-    Loader
+    Loader,
+    Edit
 } from 'lucide-react';
 
 export default function Merger() {
@@ -81,10 +82,10 @@ export default function Merger() {
             const response = await fileAPI.upload(selectedFiles);
 
             if (response.success) {
-                setUploadedFiles((prev) => [...prev, ...response.data.files]);
-                setSelectedFiles([]);
-                setSuccess(`${response.data.files.length} file(s) uploaded successfully`);
-                setTimeout(() => setSuccess(''), 3000);
+                // Navigate to edit & merge page with uploaded files
+                navigate('/edit-and-merge', {
+                    state: { uploadedFiles: response.data.files }
+                });
             }
         } catch (error) {
             setError(error.error || 'Failed to upload files');
@@ -178,8 +179,8 @@ export default function Merger() {
                             {/* Drag and Drop Area */}
                             <div
                                 className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${dragActive
-                                        ? 'border-primary-500 bg-primary-50'
-                                        : 'border-gray-300 hover:border-primary-400'
+                                    ? 'border-primary-500 bg-primary-50'
+                                    : 'border-gray-300 hover:border-primary-400'
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
@@ -337,12 +338,21 @@ export default function Merger() {
                                                         {formatFileSize(file.fileSize)}
                                                     </p>
                                                 </div>
-                                                <button
-                                                    onClick={() => removeUploadedFile(file._id)}
-                                                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-100 rounded-lg transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-red-600" />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <Link
+                                                        to={`/editor/${file._id}`}
+                                                        className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
+                                                        title="Edit PDF before merging"
+                                                    >
+                                                        <Edit className="w-4 h-4 text-blue-600" />
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => removeUploadedFile(file._id)}
+                                                        className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-red-600" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -372,6 +382,7 @@ export default function Merger() {
                         <div className="card bg-blue-50 border-blue-200">
                             <h3 className="font-semibold text-blue-900 mb-2">💡 Tips</h3>
                             <ul className="text-sm text-blue-800 space-y-1">
+                                <li>• Click Edit (✏️) to remove pages or add text before merging</li>
                                 <li>• Drag files to reorder them before merging</li>
                                 <li>• Original files are preserved after merging</li>
                                 <li>• Check merge history in the dashboard</li>
