@@ -10,6 +10,7 @@ import fs from 'fs';
 import authRoutes from './routes/auth.js';
 import fileRoutes from './routes/files.js';
 import mergeRoutes from './routes/merge.js';
+import editorRoutes from './routes/editor.js';
 
 // Load environment variables
 dotenv.config();
@@ -39,11 +40,12 @@ app.use('/uploads', express.static(uploadsDir));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/files', fileRoutes);
 app.use('/api/v1/merge', mergeRoutes);
+app.use('/api/v1/editor', editorRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'PDF Merger API is running',
     timestamp: new Date().toISOString()
   });

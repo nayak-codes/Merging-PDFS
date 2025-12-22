@@ -66,4 +66,9 @@ export const mergeAPI = {
     annotate: (mergeId, annotation) => api.post(`/merge/${mergeId}/annotate`, annotation)
 };
 
+// Editor APIs
+export const editorAPI = {
+    modify: (fileId, operations) => api.post(`/editor/${fileId}/modify`, { operations })
+};
+
 export default api;
