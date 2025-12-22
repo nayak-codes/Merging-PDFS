@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 // Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 export default function Editor() {
     const { fileId } = useParams();
@@ -35,13 +35,17 @@ export default function Editor() {
     const [saving, setSaving] = useState(false);
 
     // Editor state
-    const [activeTool, setActiveTool] = useState(null);
+    const [activeTool, setActiveTool] = useState('select'); // Default to select mode
     const [operations, setOperations] = useState([]);
     const [textInput, setTextInput] = useState('');
     const [textColor, setTextColor] = useState('#000000');
     const [fontSize, setFontSize] = useState(12);
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [watermarkText, setWatermarkText] = useState('');
+
+    // Text editing state
+    const [editingState, setEditingState] = useState(null);
+    const [editInput, setEditInput] = useState('');
 
     useEffect(() => {
         loadFile();
@@ -67,7 +71,7 @@ export default function Editor() {
     };
 
     const handleCanvasClick = (e) => {
-        if (!activeTool) return;
+        if (!activeTool || activeTool === 'select') return;
 
         const rect = e.target.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -86,6 +90,88 @@ export default function Editor() {
             };
             setOperations([...operations, operation]);
             setTextInput('');
+        }
+    };
+
+    // Handle clicking on existing text to edit it
+    useEffect(() => {
+        if (activeTool !== 'select') return;
+
+        const handleTextClick = (e) => {
+            const target = e.target;
+            if (target.tagName === 'SPAN' && target.parentElement.className.includes('react-pdf__Page__textContent')) {
+                e.stopPropagation();
+
+                const rect = target.getBoundingClientRect();
+                const containerRect = document.querySelector('.react-pdf__Page').getBoundingClientRect();
+
+                const x = rect.left - containerRect.left;
+                const y = rect.top - containerRect.top;
+
+                setEditingState({
+                    originalText: target.textContent,
+                    targetSpan: target,
+                    x, y,
+                    width: rect.width,
+                    height: rect.height,
+                    fontSize: window.getComputedStyle(target).fontSize,
+                    fontFamily: window.getComputedStyle(target).fontFamily,
+                    color: window.getComputedStyle(target).color
+                });
+                setEditInput(target.textContent);
+                target.style.opacity = '0';
+            }
+        };
+
+        document.addEventListener('click', handleTextClick);
+        return () => document.removeEventListener('click', handleTextClick);
+    }, [activeTool]);
+
+    // Inject CSS for text hover effects
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .react-pdf__Page__textContent span {
+                cursor: ${activeTool === 'select' ? 'text' : 'default'} !important;
+                pointer-events: ${activeTool === 'select' ? 'auto' : 'none'};
+                border-radius: 2px;
+                transition: background-color 0.2s;
+            }
+            .react-pdf__Page__textContent span:hover {
+                background-color: ${activeTool === 'select' ? 'rgba(59, 130, 246, 0.2)' : 'transparent'};
+                box-shadow: ${activeTool === 'select' ? '0 0 0 2px rgba(59, 130, 246, 0.3)' : 'none'};
+            }
+        `;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, [activeTool]);
+
+    const handleEditSave = () => {
+        if (!editingState) return;
+
+        if (editInput !== editingState.originalText) {
+            const operation = {
+                type: 'modifyText',
+                pageIndex: currentPage - 1,
+                originalText: editingState.originalText,
+                newText: editInput,
+                x: editingState.x,
+                y: editingState.y
+            };
+            setOperations([...operations, operation]);
+            editingState.targetSpan.textContent = editInput;
+        }
+
+        editingState.targetSpan.style.opacity = '1';
+        setEditingState(null);
+    };
+
+    const handleEditKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleEditSave();
+        } else if (e.key === 'Escape') {
+            editingState.targetSpan.style.opacity = '1';
+            setEditingState(null);
         }
     };
 
@@ -220,6 +306,25 @@ export default function Editor() {
                 <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
                     <h2 className="font-bold text-gray-900 mb-4">Editing Tools</h2>
 
+                    {/* Select Tool - For editing existing text */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => setActiveTool('select')}
+                            className={`btn w-full justify-start ${activeTool === 'select' ? 'btn-primary' : 'btn-secondary'
+                                }`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                            </svg>
+                            Select & Edit Text
+                        </button>
+                        {activeTool === 'select' && (
+                            <p className="mt-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                ✨ Click on any text in the PDF to edit it
+                            </p>
+                        )}
+                    </div>
+
                     {/* Text Tool */}
                     <div className="mb-6">
                         <button
@@ -330,6 +435,7 @@ export default function Editor() {
                                 {operations.map((op, idx) => (
                                     <div key={idx} className="text-xs bg-gray-50 p-2 rounded">
                                         {op.type === 'addText' && `Text: "${op.text}"`}
+                                        {op.type === 'modifyText' && `Edit: "${op.originalText}" → "${op.newText}"`}
                                         {op.type === 'addWatermark' && `Watermark: "${op.text}"`}
                                         {op.type === 'rotatePage' && `Rotate page ${op.pageIndex + 1}`}
                                         {op.type === 'deletePage' && `Delete page ${op.pageIndex + 1}`}
@@ -401,10 +507,40 @@ export default function Editor() {
                                 <Page
                                     pageNumber={currentPage}
                                     scale={scale}
-                                    renderTextLayer={false}
+                                    renderTextLayer={activeTool === 'select'}
                                     renderAnnotationLayer={false}
                                 />
                             </Document>
+
+                            {/* Floating Input for Editing Text */}
+                            {editingState && (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        left: editingState.x,
+                                        top: editingState.y,
+                                        zIndex: 100
+                                    }}
+                                >
+                                    <input
+                                        autoFocus
+                                        value={editInput}
+                                        onChange={(e) => setEditInput(e.target.value)}
+                                        onBlur={handleEditSave}
+                                        onKeyDown={handleEditKeyDown}
+                                        className="bg-white border-2 border-blue-500 rounded px-1 shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                        style={{
+                                            fontSize: editingState.fontSize,
+                                            fontFamily: editingState.fontFamily,
+                                            color: editingState.color,
+                                            minWidth: Math.max(editingState.width + 10, 50),
+                                            height: 'auto',
+                                            padding: 0,
+                                            margin: -2
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

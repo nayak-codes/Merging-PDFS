@@ -5,7 +5,6 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Merger from './pages/Merger';
 import Editor from './pages/Editor';
-import EditAndMerge from './pages/EditAndMerge';
 import './index.css';
 
 // Protected route wrapper
@@ -72,12 +71,6 @@ function App() {
                     <Route path="/editor/:fileId" element={
                         <ProtectedRoute>
                             <Editor />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/edit-and-merge" element={
-                        <ProtectedRoute>
-                            <EditAndMerge />
                         </ProtectedRoute>
                     } />
                 </Routes>
