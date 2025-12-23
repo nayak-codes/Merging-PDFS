@@ -19,8 +19,13 @@ import {
     Loader
 } from 'lucide-react';
 
+<<<<<<< HEAD
 // Set up PDF.js worker - use local file
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+=======
+// Set up PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
 
 export default function Editor() {
     const { fileId } = useParams();
@@ -35,7 +40,11 @@ export default function Editor() {
     const [saving, setSaving] = useState(false);
 
     // Editor state
+<<<<<<< HEAD
     const [activeTool, setActiveTool] = useState('select'); // Default to select mode
+=======
+    const [activeTool, setActiveTool] = useState(null);
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
     const [operations, setOperations] = useState([]);
     const [textInput, setTextInput] = useState('');
     const [textColor, setTextColor] = useState('#000000');
@@ -43,10 +52,13 @@ export default function Editor() {
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [watermarkText, setWatermarkText] = useState('');
 
+<<<<<<< HEAD
     // Text editing state
     const [editingState, setEditingState] = useState(null);
     const [editInput, setEditInput] = useState('');
 
+=======
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
     useEffect(() => {
         loadFile();
     }, [fileId]);
@@ -71,7 +83,11 @@ export default function Editor() {
     };
 
     const handleCanvasClick = (e) => {
+<<<<<<< HEAD
         if (!activeTool || activeTool === 'select') return;
+=======
+        if (!activeTool) return;
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
 
         const rect = e.target.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -93,6 +109,7 @@ export default function Editor() {
         }
     };
 
+<<<<<<< HEAD
     // Handle clicking on existing text to edit it
     useEffect(() => {
         if (activeTool !== 'select') return;
@@ -175,6 +192,8 @@ export default function Editor() {
         }
     };
 
+=======
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
     const addWatermark = () => {
         if (!watermarkText) {
             alert('Please enter watermark text');
@@ -306,6 +325,7 @@ export default function Editor() {
                 <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
                     <h2 className="font-bold text-gray-900 mb-4">Editing Tools</h2>
 
+<<<<<<< HEAD
                     {/* Select Tool - For editing existing text */}
                     <div className="mb-6">
                         <button
@@ -325,6 +345,8 @@ export default function Editor() {
                         )}
                     </div>
 
+=======
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
                     {/* Text Tool */}
                     <div className="mb-6">
                         <button
@@ -435,7 +457,10 @@ export default function Editor() {
                                 {operations.map((op, idx) => (
                                     <div key={idx} className="text-xs bg-gray-50 p-2 rounded">
                                         {op.type === 'addText' && `Text: "${op.text}"`}
+<<<<<<< HEAD
                                         {op.type === 'modifyText' && `Edit: "${op.originalText}" → "${op.newText}"`}
+=======
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
                                         {op.type === 'addWatermark' && `Watermark: "${op.text}"`}
                                         {op.type === 'rotatePage' && `Rotate page ${op.pageIndex + 1}`}
                                         {op.type === 'deletePage' && `Delete page ${op.pageIndex + 1}`}
@@ -507,6 +532,7 @@ export default function Editor() {
                                 <Page
                                     pageNumber={currentPage}
                                     scale={scale}
+<<<<<<< HEAD
                                     renderTextLayer={activeTool === 'select'}
                                     renderAnnotationLayer={false}
                                 />
@@ -541,6 +567,12 @@ export default function Editor() {
                                     />
                                 </div>
                             )}
+=======
+                                    renderTextLayer={false}
+                                    renderAnnotationLayer={false}
+                                />
+                            </Document>
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
                         </div>
                     </div>
                 </div>

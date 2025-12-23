@@ -4,6 +4,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Merger from './pages/Merger';
+<<<<<<< HEAD
+=======
+import Editor from './pages/Editor';
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
 import EditAndMerge from './pages/EditAndMerge';
 import './index.css';
 
@@ -68,6 +72,15 @@ function App() {
                         </ProtectedRoute>
                     } />
 
+<<<<<<< HEAD
+=======
+                    <Route path="/editor/:fileId" element={
+                        <ProtectedRoute>
+                            <Editor />
+                        </ProtectedRoute>
+                    } />
+
+>>>>>>> 723318478853dec92fd5478583a8be25ad8fd84d
                     <Route path="/edit-and-merge" element={
                         <ProtectedRoute>
                             <EditAndMerge />
