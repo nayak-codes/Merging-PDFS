@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Merger from './pages/Merger';
+import EditAndMerge from './pages/EditAndMerge';
 import './index.css';
 
 // Protected route wrapper
@@ -64,6 +65,12 @@ function App() {
                     <Route path="/merge" element={
                         <ProtectedRoute>
                             <Merger />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/edit-and-merge" element={
+                        <ProtectedRoute>
+                            <EditAndMerge />
                         </ProtectedRoute>
                     } />
                 </Routes>

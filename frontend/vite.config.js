@@ -16,5 +16,13 @@ export default defineConfig({
                 changeOrigin: true
             }
         }
+    },
+    optimizeDeps: {
+        include: ['pdfjs-dist']
+    },
+    build: {
+        commonjsOptions: {
+            include: [/pdfjs-dist/, /node_modules/]
+        }
     }
 })
